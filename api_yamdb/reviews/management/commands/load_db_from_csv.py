@@ -19,50 +19,106 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         data_folder = Path('../api_yamdb/static/data/')
-        models = [
-            User,
-            Genre,
-            Titles,
-            Category,
-            Review,
-            Genre_Title,
-            Comment,
-            
-        ]
+        models = {
+            User: 'raw_data',
+            Genre: 'raw_data',
+            Category: 'raw_data',
+            Titles: 'titles',
+            Review: 'review',
+            Genre_Title: 'genre_title',
+            Comment: 'comment',
+        }
 
-        print('files')
-        for x in data_folder.iterdir():
-            print(x)
-            
-        print(models)
-
+        file_path = [path for path in data_folder.iterdir()]
+        
         try:
-            for model in models:
-                # if model != User:
+            for model, type_data in models.items():
                 name_model = model.objects.model._meta.db_table.lstrip('reviews_')
-                # else:
-                    # name_model = model.objects.model._meta.db_table.lstrip('auth_')
-                print(name_model, 'Имя модели')
-                for path in data_folder.iterdir():
-                    print(path, 'путь')
-                    # print(str(path.name).rstrip('.csv'))
-                    print(str(path.name).rstrip('.csv'), name_model, ' сравнения имен1')
+                for path in file_path:
                     if name_model == str(path.name).rstrip('.csv'):
-                        # print(str(path.name).rstrip('.csv'), name_model, ' сравнения имен')
-                        self.load_categories(path, model)
+                        self.load_data(path, model, type_data)
                         print('puc')
         except Exception as r:
             print(r)
             raise CommandError("Ошибка загрузки данных")
 
-    def load_categories(self, path, model):
+    def load_data(self, path, model, type_data):
         with open(path, newline='') as csvfile:
             reader = csv.DictReader(csvfile)
-            categories = []
-            for row in reader:
-                print(row, 'row')
-                categories.append(
-                    model(**row)
+            temp_instances = []
+            if type_data == 'raw_data':
+                self.load_raw_data(model, reader, temp_instances)
+            elif type_data == 'titles':
+                print(model, reader, temp_instances)
+                self.load_titles(model, reader, temp_instances)
+            elif type_data == 'review':
+                self.load_review(model, reader, temp_instances)
+            elif type_data == 'genre_title':
+                self.load_genre_title(model, reader, temp_instances)
+            elif type_data == 'comment':
+                self.load_comment(model, reader, temp_instances)
+
+            if temp_instances:
+                model.objects.bulk_create(temp_instances)
+
+    def load_raw_data(self, model, reader, temp_instances):
+        for row in reader:
+            temp_instances.append(
+                model(**row)
+            )
+
+    def load_titles(self, model, reader, temp_instances):
+        Titles.objects.bulk_create(objs=[
+            Titles(
+                id=row['id'],
+                name=row['name'],
+                year=row['year'],
+                category=Category.objects.get_or_create(
+                    id=row['category']
+                )[0],
+            )
+            for row in reader
+        ])
+
+    def load_review(self, model, reader, temp_instances):
+        for row in reader:
+            temp_instances.append(
+                model(
+                    id=row['id'],
+                    title=Titles.objects.get_or_create(
+                        id=row['title_id']
+                    ),
+                    text=row['text'],
+                    author=User.objects.get_or_create(
+                        id=row['author']
+                    ),
+                    score=row['score'],
+                    pub_date=row['pub_date'],
                 )
-            print('ok')
-            model.objects.bulk_create(categories)
+            )
+
+    def load_genre_title(self, model, reader, temp_instances):
+        for row in reader:
+            title, created = Titles.objects.get_or_create(
+                id=row['title_id']
+            )
+            genre, created = Genre.objects.get_or_create(
+                id=row['genre_id']
+            )
+            title.genre.add(genre)
+            title.save()
+
+    def load_comment(self, model, reader, temp_instances):
+        for row in reader:
+            temp_instances.append(
+                model(
+                    review=Review.objects.get_or_create(
+                        id=row['review_id']
+                    ),
+                    text=row['text'],
+                    author=User.objects.get_or_create(
+                        id=row['author']
+                    ),
+                    pub_date=row['pub_date']
+                )
+            )

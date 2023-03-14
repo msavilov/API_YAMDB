@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from django.contrib.auth import get_user_model
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
@@ -9,7 +8,12 @@ from django.db import models
 class User(models.Model):
     """Заглушка"""
 
-    username = models.CharField(max_length=256)
+    username = models.CharField(
+        max_length=256,
+        unique=True,
+        blank=False,
+        null=False,
+    )
     email = models.EmailField()
     role = models.CharField(max_length=256)
     bio = models.CharField(max_length=500)
@@ -70,10 +74,11 @@ class Titles(models.Model):
         max_length=256,
         db_index=True,
     )
-    year = models.PositiveSmallIntegerField(
+    year = models.IntegerField(
         'Год выпуска',
-        db_index=True,
-        validators=(MaxValueValidator(int(datetime.now().year)),),
+        # db_index=True,
+        default=None
+        # validators=(MaxValueValidator(int(datetime.now().year)),),
     )
     description = models.TextField(
         'Описание',
@@ -89,7 +94,8 @@ class Titles(models.Model):
     )
     category = models.ForeignKey(
         Category,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
+        null=True,
         related_name='titles',
         verbose_name='Категория',
     )
@@ -103,14 +109,14 @@ class Titles(models.Model):
         return self.name
 
 
-class Genre_Title(models.Model):
-    """Вспомогательная модель многие к многим"""
+# class Genre_Title(models.Model):
+#     """Вспомогательная модель многие к многим"""
 
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-    title = models.ForeignKey(Titles, on_delete=models.CASCADE)
+#     genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+#     title = models.ForeignKey(Titles, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f'{self.genre} {self.title}'
+#     def __str__(self):
+#         return f'{self.genre} {self.title}'
 
 
 class Review(models.Model):
@@ -118,7 +124,6 @@ class Review(models.Model):
 
     text = models.CharField(
         'Текст отзыва',
-        max_length=6000
     )
     author = models.ForeignKey(
         User,
@@ -130,7 +135,6 @@ class Review(models.Model):
         auto_now_add=True,
         db_index=True
     )
-
     title = models.ForeignKey(
         Titles,
         on_delete=models.CASCADE,
@@ -151,10 +155,10 @@ class Review(models.Model):
     class Meta:
         ordering = ['-pub_date']
         constraints = [
-            # models.UniqueConstraint(
-            #     fields=['author', 'title'],
-            #     name='unique_autor'
-            # )
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_autor'
+            )
         ]
 
     def __str__(self):
