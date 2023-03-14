@@ -5,7 +5,16 @@ from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
 
-User = get_user_model()
+
+class User(models.Model):
+    """Заглушка"""
+
+    username = models.CharField(max_length=256)
+    email = models.EmailField()
+    role = models.CharField(max_length=256)
+    bio = models.CharField(max_length=500)
+    first_name = models.CharField(max_length=256)
+    last_name = models.CharField(max_length=256)
 
 
 class CategoriesGenresAbstract(models.Model):
@@ -53,7 +62,7 @@ class Genre(CategoriesGenresAbstract):
         default_related_name = 'genres'
 
 
-class Title(models.Model):
+class Titles(models.Model):
     """Модель произведения"""
 
     name = models.CharField(
@@ -74,7 +83,7 @@ class Title(models.Model):
     )
     genre = models.ManyToManyField(
         Genre,
-        through='GenreTitle',
+        through='Genre_Title',
         related_name='titles',
         verbose_name='Жанр',
     )
@@ -94,11 +103,11 @@ class Title(models.Model):
         return self.name
 
 
-class GenreTitle(models.Model):
+class Genre_Title(models.Model):
     """Вспомогательная модель многие к многим"""
 
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-    title = models.ForeignKey(Title, on_delete=models.CASCADE)
+    title = models.ForeignKey(Titles, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.genre} {self.title}'
@@ -109,7 +118,7 @@ class Review(models.Model):
 
     text = models.CharField(
         'Текст отзыва',
-        max_length=600
+        max_length=6000
     )
     author = models.ForeignKey(
         User,
@@ -123,7 +132,7 @@ class Review(models.Model):
     )
 
     title = models.ForeignKey(
-        Title,
+        Titles,
         on_delete=models.CASCADE,
         verbose_name='Произведение'
     )
@@ -142,10 +151,10 @@ class Review(models.Model):
     class Meta:
         ordering = ['-pub_date']
         constraints = [
-            models.UniqueConstraint(
-                fields=['author', 'title'],
-                name='unique_autor'
-            )
+            # models.UniqueConstraint(
+            #     fields=['author', 'title'],
+            #     name='unique_autor'
+            # )
         ]
 
     def __str__(self):
