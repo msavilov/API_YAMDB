@@ -13,7 +13,7 @@ class Command(BaseCommand):
         file_path = {
             str(p.name).rstrip('.csv'): p for p in data_folder.iterdir()
         }
-        print(file_path)
+
         load_model = {
             'user': self.load_user,
             'category': self.load_category,
