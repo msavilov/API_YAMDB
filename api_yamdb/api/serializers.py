@@ -66,13 +66,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         )
         model = Review
     
-    def validate(self, data):
-        if self.context['request'].method == 'POST':
-            user = self.context['request'].user
-            title_id = self.context['view'].kwargs.get('title_id')
-            if Review.objects.filter(author=user, title_id=title_id).exists():
-                raise serializers.ValidationError('Отзыв уже оставлен.')
-        return data
+    # def validate(self, data):
+    #     if self.context['request'].method == 'POST':
+    #         user = self.context['request'].user
+    #         title_id = self.context['view'].kwargs.get('title_id')
+    #         if Review.objects.filter(author=user, title_id=title_id).exists():
+    #             raise serializers.ValidationError('Отзыв уже оставлен.')
+    #     return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
