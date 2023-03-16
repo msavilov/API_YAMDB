@@ -15,4 +15,5 @@ router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)'
 
 urlpatterns = [
     path('v1/', include(router.urls)),
+    path("v1/", include('auth.urls')),
 ]
