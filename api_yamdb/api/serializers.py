@@ -1,8 +1,6 @@
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
-from rest_framework.validators import UniqueValidator
-
 from reviews.models import Category, Comment, Genre, Review, Titles, User
 
 
@@ -52,6 +50,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+        model = Review
         fields = (
             'id',
             'text',
@@ -61,11 +60,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             'id',
-            'author',
-            'pub_date',
         )
-        model = Review
-    
+
     def validate(self, data):
         if self.context['request'].method == 'POST':
             user = self.context['request'].user
@@ -82,6 +78,7 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+        model = Comment
         fields = (
             'id',
             'text',
@@ -93,4 +90,54 @@ class CommentSerializer(serializers.ModelSerializer):
             'author',
             'pub_date',
         )
-        model = Comment
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для user"""
+
+    email = serializers.EmailField(
+        max_length=254,
+        required=True,
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role'
+        )
+
+
+class RegistrationSerializer(serializers.Serializer):
+    """Сериализатор для регистрации"""
+
+    email = serializers.EmailField(
+        max_length=254,
+        required=True,
+    )
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[RegexValidator(regex=r'^[\w.@+-]+\Z'), ]
+    )
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise ValidationError(
+                'Использовать имя "me" в качестве username запрещено.'
+            )
+        return value
+
+
+class GetTokenSerializer(serializers.Serializer):
+    """Сериализатор для получения токена"""
+
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+    )
+    confirmation_code = serializers.CharField(required=True)
