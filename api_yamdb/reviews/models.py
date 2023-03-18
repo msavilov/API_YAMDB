@@ -1,7 +1,10 @@
 from datetime import datetime
 
-from django.core.validators import (MaxValueValidator, MinValueValidator,
-                                    RegexValidator)
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+    RegexValidator
+)
 from django.db import models
 from users.models import User
 
@@ -39,7 +42,7 @@ class Category(CategoriesGenresAbstract):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
         default_related_name = 'categories'
-        
+
     def __str__(self):
         return self.name
 
@@ -51,7 +54,7 @@ class Genre(CategoriesGenresAbstract):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
         default_related_name = 'genres'
-        
+
     def __str__(self):
         return self.name
 
