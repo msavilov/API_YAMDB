@@ -137,11 +137,6 @@ class GetTokenSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для user"""
 
-    email = serializers.EmailField(
-        max_length=254,
-        required=True,
-    )
-
     class Meta:
         model = User
         fields = (
