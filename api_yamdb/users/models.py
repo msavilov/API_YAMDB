@@ -23,8 +23,20 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=256,
         choices=ROLE_CHOICES,
+        default=USER,
         blank=True
     )
     bio = models.TextField(blank=True)
 
     REQUIRED_FIELDS = ('email', )
+
+    class Meta:
+        ordering = ('id',)
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'],
+                name='unique_username_email',
+            )
+        ]

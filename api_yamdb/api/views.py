@@ -1,6 +1,8 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models.aggregates import Avg
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
@@ -10,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.permissions import IsAuthenticated
 # from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from reviews.models import Category, Genre, Review, Titles, User
 
@@ -22,7 +25,7 @@ from .filters import TitlesFilter
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, GetTokenSerializer,
                           RegistrationSerializer, ReviewSerializer,
-                          TitleSerializer)
+                          TitleSerializer, UserSerializer)
 
 
 class CustomMixin(
@@ -37,7 +40,7 @@ class CustomMixin(
 class CategoryViewSet(CustomMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = [SearchFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     # permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     search_fields = ('name',)
@@ -47,7 +50,7 @@ class CategoryViewSet(CustomMixin):
 class GenreViewSet(CustomMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = [SearchFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     # permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     search_fields = ('name',)
@@ -107,25 +110,27 @@ class CommentViewSet(ModelViewSet):
 
 
 class RegistrationView(APIView):
-    http_method_names = ['post']
+    http_method_names = ('post',)
     serializer_class = RegistrationSerializer
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        user, _ = User.objects.get_or_create(
-            username=serializer.validated_data.get('username'),
-            email=serializer.validated_data.get('email'),
-        )
+        try:
+            user, _ = User.objects.get_or_create(
+                username=serializer.validated_data.get('username'),
+                email=serializer.validated_data.get('email'),
+            )
+        except Exception:
+            return Response(serializer.data, status=400)
         code = default_token_generator.make_token(user)
         send_mail(
             f'<h1>Код подтверждения {code}</h1>',
             f'''<h3>Подтвердите адрес электронной почты</h3>
-             Ваш код подтверждения указан ниже.
-             Введите его в открытом окне браузера,
-             и мы поможем вам войти в систему.
-             <h1>{code}</h1>''',
+            Ваш код подтверждения указан ниже.
+            Введите его в открытом окне браузера,
+            и мы поможем вам войти в систему.
+            <h1>{code}</h1>''',
             'no-reply@yamdb.ru',
             [serializer.validated_data.get('email')],
             fail_silently=False,
@@ -134,7 +139,7 @@ class RegistrationView(APIView):
 
 
 class GetTokenView(APIView):
-    http_method_names = ['post']
+    http_method_names = ('post',)
     serializer_class = GetTokenSerializer
 
     def post(self, request):
@@ -153,3 +158,30 @@ class GetTokenView(APIView):
             {'confirmation_code': 'Истек срок кода подтверждения'},
             status=400
         )
+
+
+class UserViewSet(ModelViewSet):
+    queryset = User.objects.order_by('username')
+    serializer_class = UserSerializer
+    # permission_classes = (IsAdminUser,)
+    filter_backends = (SearchFilter,)
+    search_fields = ('username',)
+    http_method_names = ('get', 'post', 'patch', 'delete')
+    lookup_field = 'username'
+
+    @action(
+        detail=False,
+        methods=['GET', 'PATCH'],
+        permission_classes=(IsAuthenticated,),
+    )
+    def me(self, request):
+        self.kwargs['username'] = request.user.username
+        if request.method == 'PATCH':
+            return self.partial_update(request)
+        return self.retrieve(request)
+
+    def perform_update(self, serializer):
+        if self.action == 'me':
+            serializer.save(role=self.request.user.role)
+        else:
+            serializer.save()
