@@ -1,35 +1,33 @@
-from django.db.models.aggregates import Avg
-from rest_framework import filters, mixins, viewsets, views, response
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db.models.aggregates import Avg
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
+from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
+                                   ListModelMixin)
 from rest_framework.pagination import PageNumberPagination
-
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 # from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from reviews.models import Category, Genre, Review, Titles, User
 
 from .filters import TitlesFilter
-
 # from .permissions import (
 #     IsAdmin,
 #     IsAdminModeratorOwnerOrReadOnly,
 #     IsAdminOrReadOnly,
 # )
-from .serializers import (
-    CategorySerializer,
-    CommentSerializer,
-    GenreSerializer,
-    ReviewSerializer,
-    TitleSerializer,
-    RegistrationSerializer,
-)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, RegistrationSerializer,
+                          ReviewSerializer, TitleSerializer)
 
 
 class CustomMixin(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
+    ListModelMixin,
+    CreateModelMixin,
+    DestroyModelMixin,
+    GenericViewSet,
 ):
     pass
 
@@ -37,7 +35,7 @@ class CustomMixin(
 class CategoryViewSet(CustomMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = [filters.SearchFilter]
+    filter_backends = [SearchFilter]
     # permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     search_fields = ('name',)
@@ -47,14 +45,14 @@ class CategoryViewSet(CustomMixin):
 class GenreViewSet(CustomMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = [filters.SearchFilter]
+    filter_backends = [SearchFilter]
     # permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     search_fields = ('name',)
     lookup_field = 'slug'
 
 
-class TitlesViewSet(viewsets.ModelViewSet):
+class TitlesViewSet(ModelViewSet):
     queryset = Titles.objects.all().annotate(rating=Avg('review__score'))
     # permission_classes = (IsAdminOrReadOnly,)
     filterset_class = TitlesFilter
@@ -66,7 +64,7 @@ class TitlesViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
     queryset = Review.objects.all()
@@ -87,7 +85,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, title=title)
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
     pagination_class = PageNumberPagination
     # permission_classes = (
@@ -106,7 +104,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class RegistrationViewSet(views.APIView):
+class RegistrationViewSet(APIView):
     http_method_names = ['post']
     serializer_class = RegistrationSerializer
 
@@ -130,4 +128,4 @@ class RegistrationViewSet(views.APIView):
             [serializer.validated_data.get('email')],
             fail_silently=False,
         )
-        return response.Response(serializer.data, status=200)
+        return Response(serializer.data, status=200)
