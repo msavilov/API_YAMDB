@@ -99,3 +99,12 @@ class RegistrationSerializer(serializers.Serializer):
     username = serializers.CharField(
         required=True,
     )
+
+
+class GetTokenSerializer(serializers.Serializer):
+    """Сериализатор для получения токена"""
+
+    username = serializers.CharField(
+        required=True,
+    )
+    confirmation_code = serializers.CharField(required=True)

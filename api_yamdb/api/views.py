@@ -9,6 +9,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework_simplejwt.tokens import AccessToken
 # from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from reviews.models import Category, Genre, Review, Titles, User
 
@@ -19,8 +20,9 @@ from .filters import TitlesFilter
 #     IsAdminOrReadOnly,
 # )
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, RegistrationSerializer,
-                          ReviewSerializer, TitleSerializer)
+                          GenreSerializer, GetTokenSerializer,
+                          RegistrationSerializer, ReviewSerializer,
+                          TitleSerializer)
 
 
 class CustomMixin(
@@ -104,7 +106,7 @@ class CommentViewSet(ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class RegistrationViewSet(APIView):
+class RegistrationView(APIView):
     http_method_names = ['post']
     serializer_class = RegistrationSerializer
 
@@ -129,3 +131,25 @@ class RegistrationViewSet(APIView):
             fail_silently=False,
         )
         return Response(serializer.data, status=200)
+
+
+class GetTokenView(APIView):
+    http_method_names = ['post']
+    serializer_class = GetTokenSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        username = serializer.validated_data.get('username')
+        user = get_object_or_404(User, username=username)
+        confirmation_code = serializer.validated_data.get(
+            'confirmation_code'
+        )
+        if default_token_generator.check_token(user, confirmation_code):
+            token = AccessToken.for_user(user)
+            return Response({'token': str(token)}, status=200)
+        return Response(
+            {'confirmation_code': 'Истек срок кода подтверждения'},
+            status=400
+        )
