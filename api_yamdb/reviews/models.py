@@ -6,22 +6,6 @@ from django.db import models
 from users.models import User
 
 
-# class User(models.Model):
-#     """Заглушка"""
-
-#     username = models.CharField(
-#         max_length=256,
-#         unique=True,
-#         blank=False,
-#         null=False,
-#     )
-#     email = models.EmailField(blank=True)
-#     role = models.CharField(max_length=256, blank=True)
-#     bio = models.TextField(blank=True)
-#     first_name = models.CharField(max_length=256, blank=True)
-#     last_name = models.CharField(max_length=256, blank=True)
-
-
 class CategoriesGenresAbstract(models.Model):
     """Абстрактная модель для жанров и категории"""
 
