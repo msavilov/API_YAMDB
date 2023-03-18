@@ -88,3 +88,14 @@ class CommentSerializer(serializers.ModelSerializer):
             'author',
             'pub_date',
         )
+
+
+class RegistrationSerializer(serializers.Serializer):
+    """Сериализатор для регистрации"""
+
+    email = serializers.EmailField(
+        required=True,
+    )
+    username = serializers.CharField(
+        required=True,
+    )

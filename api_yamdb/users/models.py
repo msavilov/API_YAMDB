@@ -20,6 +20,5 @@ class User(AbstractUser):
         blank=True
     )
     bio = models.TextField(blank=True)
-    password = models.CharField(max_length=256, blank=False)
 
     REQUIRED_FIELDS = ('email', )
