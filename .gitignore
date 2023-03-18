@@ -149,4 +149,5 @@ dmypy.json
 media/
 
 # django migrations
-api_yamdb/reviews/migrations/
+api_yamdb/*/migrations/
+sent_emails/

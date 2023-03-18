@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from reviews.models import Category, Comment, Genre, Review, Titles
+from reviews.models import Category, Comment, Genre, Review, Titles, User
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -88,3 +88,23 @@ class CommentSerializer(serializers.ModelSerializer):
             'author',
             'pub_date',
         )
+
+
+class RegistrationSerializer(serializers.Serializer):
+    """Сериализатор для регистрации"""
+
+    email = serializers.EmailField(
+        required=True,
+    )
+    username = serializers.CharField(
+        required=True,
+    )
+
+
+class GetTokenSerializer(serializers.Serializer):
+    """Сериализатор для получения токена"""
+
+    username = serializers.CharField(
+        required=True,
+    )
+    confirmation_code = serializers.CharField(required=True)
