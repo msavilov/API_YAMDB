@@ -27,7 +27,6 @@ class CategoriesGenresAbstract(models.Model):
 
     class Meta:
         abstract = True
-        ordering = ('name', )
 
     def __str__(self):
         return self.name
@@ -40,6 +39,9 @@ class Category(CategoriesGenresAbstract):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
         default_related_name = 'categories'
+        
+    def __str__(self):
+        return self.name
 
 
 class Genre(CategoriesGenresAbstract):
@@ -49,9 +51,12 @@ class Genre(CategoriesGenresAbstract):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
         default_related_name = 'genres'
+        
+    def __str__(self):
+        return self.name
 
 
-class Titles(models.Model):
+class Title(models.Model):
     """Модель произведения"""
 
     name = models.CharField(
@@ -110,7 +115,7 @@ class Review(models.Model):
         auto_now_add=True,
     )
     title = models.ForeignKey(
-        Titles,
+        Title,
         on_delete=models.CASCADE,
         verbose_name='Произведение',
     )
@@ -158,6 +163,3 @@ class Comment(models.Model):
         db_index=True
     )
     text = models.TextField()
-
-    def __str__(self):
-        return self.author

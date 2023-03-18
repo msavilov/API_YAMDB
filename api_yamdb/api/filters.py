@@ -1,22 +1,18 @@
-from django_filters import rest_framework as filters
+from django_filters.rest_framework import CharFilter, FilterSet
 
-from reviews.models import Titles
+from reviews.models import Title
 
 
-class TitlesFilter(filters.FilterSet):
-    name = filters.CharFilter(
-        field_name='name',
-        lookup_expr='icontains'
-    )
-    category = filters.CharFilter(
-        field_name='category__slug',
-        lookup_expr='icontains'
-    )
-    genre = filters.CharFilter(
-        field_name='genre__slug',
-        lookup_expr='icontains'
-    )
+class TitlesFilter(FilterSet):
+    genre = CharFilter(method='filter_by_genre')
+    category = CharFilter(method='filter_by_category')
 
     class Meta:
-        model = Titles
-        fields = ['name', 'year', 'genre', 'category']
+        model = Title
+        fields = ('year', 'name')
+
+    def filter_by_genre(self, queryset, name, value):
+        return queryset.filter(genre__slug=value)
+
+    def filter_by_category(self, queryset, name, value):
+        return queryset.filter(category__slug=value)

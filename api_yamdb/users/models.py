@@ -14,10 +14,9 @@ class User(AbstractUser):
         (MODERATOR, 'Модератор'),
     )
     email = models.EmailField(
-        max_length=256,
+        max_length=254,
         unique=True,
-        blank=False,
-        null=False
+        null=True,
     )
 
     role = models.CharField(
@@ -28,15 +27,10 @@ class User(AbstractUser):
     )
     bio = models.TextField(blank=True)
 
-    REQUIRED_FIELDS = ('email', )
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
 
-    class Meta:
-        ordering = ('id',)
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['username', 'email'],
-                name='unique_username_email',
-            )
-        ]
+    @property
+    def is_admin(self):
+        return self.role == self.ADMIN or self.is_superuser

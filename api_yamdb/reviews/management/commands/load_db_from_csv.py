@@ -2,7 +2,7 @@ import csv
 from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
-from reviews.models import Category, Comment, Genre, Review, Titles, User
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class Command(BaseCommand):
@@ -64,7 +64,7 @@ class Command(BaseCommand):
             temp_instances = []
             for row in reader:
                 temp_instances.append(
-                    Titles(
+                    Title(
                         id=row['id'],
                         name=row['name'],
                         year=row['year'],
@@ -72,7 +72,7 @@ class Command(BaseCommand):
                             id=row['category'])[0],
                     )
                 )
-            Titles.objects.bulk_create(temp_instances)
+            Title.objects.bulk_create(temp_instances)
         print('Titles загружен')
 
     def load_review(self, path):
@@ -83,7 +83,7 @@ class Command(BaseCommand):
                 temp_instances.append(
                     Review(
                         id=row['id'],
-                        title=Titles.objects.get_or_create(
+                        title=Title.objects.get_or_create(
                             id=row['title_id'])[0],
                         text=row['text'],
                         author=User.objects.get_or_create(
@@ -99,7 +99,7 @@ class Command(BaseCommand):
         with open(path, newline='') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                title, _ = Titles.objects.get_or_create(
+                title, _ = Title.objects.get_or_create(
                     id=row['title_id']
                 )
                 genre, _ = Genre.objects.get_or_create(

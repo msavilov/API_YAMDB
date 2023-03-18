@@ -1,44 +1,55 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from rest_framework import serializers
-from reviews.models import Category, Comment, Genre, Review, Titles, User
-
-
-class CategorySerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Category
-        exclude = ('id',)
-        lookup_field = 'slug'
-        extra_kwargs = {
-            'url': {'lookup_field': 'slug'}
-        }
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class GenreSerializer(serializers.ModelSerializer):
-
+    """Вложенный серилизатор для жанров"""
     class Meta:
         model = Genre
-        exclude = ('id',)
-        lookup_field = 'slug'
-        extra_kwargs = {
-            'url': {'lookup_field': 'slug'}
-        }
+        fields = ('name', 'slug')
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    """Вложенный серилизатор для категрии"""
+    class Meta:
+        model = Category
+        fields = ('name', 'slug')
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+    rating = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Title
+        fields = (
+            'id',
+            'name',
+            'year',
+            'rating',
+            'description',
+            'genre',
+            'category',
+        )
+
+
+class TitleCreateSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
         many=True,
         slug_field='slug',
-        queryset=Genre.objects.all()
+        allow_empty=False,
     )
     category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
         slug_field='slug',
-        queryset=Category.objects.all()
     )
 
     class Meta:
-        model = Titles
+        model = Title
         fields = '__all__'
 
 
