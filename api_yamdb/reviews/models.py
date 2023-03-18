@@ -3,7 +3,7 @@ from datetime import datetime
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
-from auth.models import User
+from users.models import User
 
 
 # class User(models.Model):

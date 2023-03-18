@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'django_filters',
-    'auth.apps.AuthConfig',
+    'users',
     'reviews',
     'api',
 ]
@@ -112,7 +112,7 @@ SIMPLE_JWT = {
 
 # Custom user
 
-AUTH_USER_MODEL = 'auth.User'
+AUTH_USER_MODEL = 'users.User'
 
 # Internationalization
 
