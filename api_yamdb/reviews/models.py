@@ -3,22 +3,23 @@ from datetime import datetime
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
+from auth.models import User
 
 
-class User(models.Model):
-    """Заглушка"""
+# class User(models.Model):
+#     """Заглушка"""
 
-    username = models.CharField(
-        max_length=256,
-        unique=True,
-        blank=False,
-        null=False,
-    )
-    email = models.EmailField(blank=True)
-    role = models.CharField(max_length=256, blank=True)
-    bio = models.CharField(max_length=500, blank=True)
-    first_name = models.CharField(max_length=256, blank=True)
-    last_name = models.CharField(max_length=256, blank=True)
+#     username = models.CharField(
+#         max_length=256,
+#         unique=True,
+#         blank=False,
+#         null=False,
+#     )
+#     email = models.EmailField(blank=True)
+#     role = models.CharField(max_length=256, blank=True)
+#     bio = models.TextField(blank=True)
+#     first_name = models.CharField(max_length=256, blank=True)
+#     last_name = models.CharField(max_length=256, blank=True)
 
 
 class CategoriesGenresAbstract(models.Model):
