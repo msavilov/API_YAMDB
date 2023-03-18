@@ -13,6 +13,12 @@ class User(AbstractUser):
         (ADMIN, 'Администратор'),
         (MODERATOR, 'Модератор'),
     )
+    email = models.EmailField(
+        max_length=256,
+        unique=True,
+        blank=False,
+        null=False
+    )
 
     role = models.CharField(
         max_length=256,

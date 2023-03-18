@@ -1,12 +1,20 @@
 from django.db.models.aggregates import Avg
 from rest_framework import filters, mixins, viewsets, views, response
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from reviews.models import Category, Comment, Genre, Review, Titles, User
+
+# from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from reviews.models import Category, Genre, Review, Titles, User
 
 from .filters import TitlesFilter
-from .permissions import IsAdmin, IsAdminModeratorOwnerOrReadOnly, IsAdminOrReadOnly
+
+# from .permissions import (
+#     IsAdmin,
+#     IsAdminModeratorOwnerOrReadOnly,
+#     IsAdminOrReadOnly,
+# )
 from .serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -105,7 +113,21 @@ class RegistrationViewSet(views.APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        print(request)
-        print('dsadasdasdasdas asdasdasd')
-        print(request.data)
+
+        user, _ = User.objects.get_or_create(
+            username=serializer.validated_data.get('username'),
+            email=serializer.validated_data.get('email'),
+        )
+        code = default_token_generator.make_token(user)
+        send_mail(
+            f'<h1>Код подтверждения {code}</h1>',
+            f'''<h3>Подтвердите адрес электронной почты</h3>
+             Ваш код подтверждения указан ниже.
+             Введите его в открытом окне браузера,
+             и мы поможем вам войти в систему.
+             <h1>{code}</h1>''',
+            'no-reply@yamdb.ru',
+            [serializer.validated_data.get('email')],
+            fail_silently=False,
+        )
         return response.Response(serializer.data, status=200)
