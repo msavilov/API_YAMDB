@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
@@ -9,7 +11,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.mixins import (
     CreateModelMixin,
     DestroyModelMixin,
-    ListModelMixin
+    ListModelMixin,
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -17,6 +19,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
+
 from reviews.models import Category, Genre, Review, Title, User
 
 from .filters import TitlesFilter
@@ -30,7 +33,7 @@ from .serializers import (
     ReviewSerializer,
     TitleCreateSerializer,
     TitleSerializer,
-    UserSerializer
+    UserSerializer,
 )
 
 
@@ -122,7 +125,7 @@ class RegistrationView(APIView):
                 **serializer.validated_data
             )
         except IntegrityError:
-            return Response(serializer.data, status=400)
+            return Response(serializer.data, HTTPStatus.BAD_REQUEST)
         code = default_token_generator.make_token(user)
         send_mail(
             f'<h1>Код подтверждения {code}</h1>',
@@ -135,7 +138,7 @@ class RegistrationView(APIView):
             [serializer.validated_data.get('email')],
             fail_silently=False,
         )
-        return Response(serializer.data, status=200)
+        return Response(serializer.data, HTTPStatus.OK)
 
 
 class GetTokenView(APIView):
@@ -154,10 +157,10 @@ class GetTokenView(APIView):
         )
         if default_token_generator.check_token(user, confirmation_code):
             token = AccessToken.for_user(user)
-            return Response({'token': str(token)}, status=200)
+            return Response({'token': str(token)}, HTTPStatus.OK)
         return Response(
             {'confirmation_code': 'Истек срок кода подтверждения'},
-            status=400
+            HTTPStatus.BAD_REQUEST,
         )
 
 

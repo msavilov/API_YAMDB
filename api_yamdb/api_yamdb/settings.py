@@ -1,7 +1,6 @@
-from pathlib import Path
-from datetime import timedelta
 import os
-
+from datetime import timedelta
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -90,6 +89,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
 # Rest_framework setup
 
 REST_FRAMEWORK = {
@@ -111,9 +111,11 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
+
 # Custom user
 
 AUTH_USER_MODEL = 'users.User'
+
 
 # Internationalization
 
@@ -135,6 +137,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Email
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 

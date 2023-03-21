@@ -1,34 +1,35 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
 
 
-class User(AbstractUser):
-
+class Role(models.TextChoices):
     USER = 'user'
     ADMIN = 'admin'
     MODERATOR = 'moderator'
 
-    ROLE_CHOICES = (
-        (USER, 'Пользователь'),
-        (ADMIN, 'Администратор'),
-        (MODERATOR, 'Модератор'),
+
+class User(AbstractUser):
+    username = models.CharField(
+        max_length=150,
+        validators=[RegexValidator(regex=r'^[\w.@+-]+\Z'), ],
+        unique=True,
     )
     email = models.EmailField(
         unique=True,
     )
-
+    bio = models.TextField(blank=True)
     role = models.CharField(
         max_length=254,
-        choices=ROLE_CHOICES,
-        default=USER,
-        blank=True
+        choices=Role.choices,
+        default=Role.USER,
+        blank=True,
     )
-    bio = models.TextField(blank=True)
 
     @property
     def is_moderator(self):
-        return self.role == self.MODERATOR
+        return self.role == Role.MODERATOR
 
     @property
     def is_admin(self):
-        return self.role == self.ADMIN or self.is_superuser
+        return self.role == Role.ADMIN or self.is_superuser

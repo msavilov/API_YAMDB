@@ -9,7 +9,7 @@ from .views import (
     RegistrationView,
     ReviewViewSet,
     TitlesViewSet,
-    UserViewSet
+    UserViewSet,
 )
 
 router = DefaultRouter()

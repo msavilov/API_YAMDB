@@ -1,18 +1,19 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from rest_framework import serializers
+
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    """Вложенный серилизатор для жанров"""
+    """Серилизатор для жанров"""
     class Meta:
         model = Genre
         fields = ('name', 'slug')
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    """Вложенный серилизатор для категрии"""
+    """Серилизатор для категории"""
     class Meta:
         model = Category
         fields = ('name', 'slug')
@@ -25,15 +26,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = (
-            'id',
-            'name',
-            'year',
-            'rating',
-            'description',
-            'genre',
-            'category',
-        )
+        fields = '__all__'
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
@@ -71,6 +64,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             'id',
+            'author',
+            'pub_date',
         )
 
     def validate(self, data):
@@ -103,9 +98,8 @@ class CommentSerializer(serializers.ModelSerializer):
         )
 
 
-class RegistrationSerializer(serializers.Serializer):
+class RegistrationSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации"""
-
     email = serializers.EmailField(
         max_length=254,
         required=True,
@@ -115,6 +109,17 @@ class RegistrationSerializer(serializers.Serializer):
         required=True,
         validators=[RegexValidator(regex=r'^[\w.@+-]+\Z'), ]
     )
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
 
     def validate_username(self, value):
         if value == 'me':
