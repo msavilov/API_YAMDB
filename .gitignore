@@ -148,3 +148,6 @@ dmypy.json
 # папки со статикой и медиа
 media/
 
+# django migrations
+api_yamdb/*/migrations/
+sent_emails/
