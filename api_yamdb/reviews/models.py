@@ -96,7 +96,6 @@ class Title(models.Model):
 
 class Review(models.Model):
     """Модель обзора и оценки произведения"""
-
     text = models.CharField(
         verbose_name='Текст отзыва',
         max_length=150,
@@ -112,6 +111,7 @@ class Review(models.Model):
     )
     title = models.ForeignKey(
         Title,
+        related_name='review',
         on_delete=models.CASCADE,
         verbose_name='Произведение',
     )
@@ -130,6 +130,7 @@ class Review(models.Model):
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
+        default_related_name = 'review'
         ordering = ['-pub_date']
         constraints = [
             models.UniqueConstraint(
