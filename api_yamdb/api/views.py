@@ -83,13 +83,14 @@ class TitlesViewSet(ModelViewSet):
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
+    queryset = Review.objects.all()
     permission_classes = (IsAuthorOrReadOnly,)
 
     def get_title(self):
         return get_object_or_404(Title, id=self.kwargs.get('title_id'))
 
     def get_queryset(self):
-        return self.get_title().reviews.all()
+        return self.get_title().review.all()
 
     def perform_create(self, serializer):
         serializer.save(title=self.get_title(), author=self.request.user)

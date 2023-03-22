@@ -131,7 +131,7 @@ class Review(models.Model):
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
-        default_related_name = 'reviews'
+        default_related_name = 'review'
         ordering = ['-pub_date']
         constraints = [
             models.UniqueConstraint(
