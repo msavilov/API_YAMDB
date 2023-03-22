@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
@@ -82,18 +83,16 @@ class TitlesViewSet(ModelViewSet):
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
-    queryset = Review.objects.all()
     permission_classes = (IsAuthorOrReadOnly,)
 
+    def get_title(self):
+        return get_object_or_404(Title, id=self.kwargs.get('title_id'))
+
     def get_queryset(self):
-        title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, pk=title_id)
-        return Review.objects.filter(title=title)
+        return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
-        title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, pk=title_id)
-        serializer.save(author=self.request.user, title=title)
+        serializer.save(title=self.get_title(), author=self.request.user)
 
 
 class CommentViewSet(ModelViewSet):
@@ -101,15 +100,16 @@ class CommentViewSet(ModelViewSet):
     pagination_class = PageNumberPagination
     permission_classes = (IsAuthorOrReadOnly,)
 
+    def get_review(self):
+        return get_object_or_404(Review, id=self.kwargs.get('review_id'))
+
     def get_queryset(self):
-        review_id = self.kwargs.get('review_id')
-        review = get_object_or_404(Review, id=review_id)
-        return review.comments.all()
+        return self.get_review().comments.all()
 
     def perform_create(self, serializer):
-        review_id = self.kwargs.get('review_id')
-        review = get_object_or_404(Review, id=review_id)
-        serializer.save(author=self.request.user, review=review)
+        serializer.save(
+            review=self.get_review(), author=self.request.user
+        )
 
 
 class RegistrationView(APIView):
@@ -134,7 +134,7 @@ class RegistrationView(APIView):
             Введите его в открытом окне браузера,
             и мы поможем вам войти в систему.
             <h1>{code}</h1>''',
-            'no-reply@yamdb.ru',
+            settings.DEFAULT_FROM_EMAIL,
             [serializer.validated_data.get('email')],
             fail_silently=False,
         )
@@ -165,7 +165,7 @@ class GetTokenView(APIView):
 
 
 class UserViewSet(ModelViewSet):
-    queryset = User.objects.order_by('username')
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminUser,)
     filter_backends = (SearchFilter,)

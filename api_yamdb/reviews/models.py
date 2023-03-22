@@ -11,6 +11,7 @@ from users.models import User
 
 MIN_SCORE = 1
 MAX_SCORE = 10
+DEFAULT_SCORE = 10
 
 
 class CategoriesGenresAbstract(models.Model):
@@ -116,8 +117,8 @@ class Review(models.Model):
         verbose_name='Произведение',
     )
     score = models.IntegerField(
-        'Оценка',
-        default=MAX_SCORE,
+        verbose_name='Оценка',
+        default=DEFAULT_SCORE,
         validators=(
             MinValueValidator(MIN_SCORE),
             MaxValueValidator(MAX_SCORE),
@@ -130,6 +131,7 @@ class Review(models.Model):
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
+        default_related_name = 'reviews'
         ordering = ['-pub_date']
         constraints = [
             models.UniqueConstraint(
