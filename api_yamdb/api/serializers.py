@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
@@ -87,7 +88,7 @@ class CommentSerializer(serializers.ModelSerializer):
         )
 
 
-class RegistrationSerializer(serializers.ModelSerializer):
+class RegistrationSerializer(serializers.Serializer):
     """Сериализатор для регистрации"""
     email = serializers.EmailField(
         max_length=254,
@@ -99,36 +100,54 @@ class RegistrationSerializer(serializers.ModelSerializer):
         validators=[RegexValidator(regex=r'^[\w.@+-]+\Z'), ]
     )
 
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
+    # class Meta:
+    #     model = User
+        # fields = (
+        #     'username',
+        #     'email',
+        #     'first_name',
+        #     'last_name',
+        #     'bio',
+        #     'role',
+        # )
+
+    def validate(self, value):
+        print(value)
+        username = value.get('username')
+        email = value.get('email')
+
+        if not email:
+            return ValidationError(
+                'Значение email не должно быть пустым.'
+            )
+
+        if not User.objects.filter(username=username).exists():
+            if User.objects.filter(email=email).exists():
+                raise ValidationError(
+                    "Пользователь с email {email} уже существует."
+                )
+
+        return value
 
     def validate_username(self, value):
         if value == 'me':
             raise ValidationError(
                 'Использовать имя "me" в качестве username запрещено.'
             )
-        if User.objects.filter(username=value).exists():
-            raise ValidationError(
-                f'Пользователь с username {value} уже существует.'
-            )
+        # if User.objects.filter(username=value).exists():
+        #     raise ValidationError(
+        #         f'Пользователь с username {value} уже существует.'
+        #     )
         return value
 
-    def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise ValidationError(
-                f'Пользователь с email {value} уже существует.'
-            )
-        if value:
-            return value
-        raise ValidationError('Значение email не должно быть пустым.')
+    # def validate_email(self, value):
+    #     if User.objects.filter(email=value).exists():
+    #         raise ValidationError(
+    #             f'Пользователь с email {value} уже существует.'
+    #         )
+    #     if value:
+    #         return value
+    #     raise ValidationError('Значение email не должно быть пустым.')
 
 
 class GetTokenSerializer(serializers.Serializer):
@@ -142,6 +161,11 @@ class GetTokenSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для user"""
+    email = serializers.EmailField(
+        max_length=254,
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
 
     class Meta:
         model = User
