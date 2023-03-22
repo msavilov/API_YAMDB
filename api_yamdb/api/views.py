@@ -32,7 +32,7 @@ from .serializers import (
     RegistrationSerializer,
     ReviewSerializer,
     TitleCreateSerializer,
-    TitleSerializer,
+    TitleReadSerializer,
     UserSerializer,
 )
 
@@ -43,11 +43,11 @@ class CustomMixin(
     DestroyModelMixin,
     GenericViewSet,
 ):
-    pass
+    '''Создание кастомного миксина'''
 
 
 class CategoryViewSet(CustomMixin):
-    queryset = Category.objects.order_by('slug')
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
     permission_classes = (IsAdminOrReadOnly,)
@@ -75,7 +75,7 @@ class TitlesViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return TitleSerializer
+            return TitleReadSerializer
         return TitleCreateSerializer
 
 

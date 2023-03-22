@@ -1,5 +1,4 @@
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
 from django.db import models
 
 
@@ -10,21 +9,21 @@ class Role(models.TextChoices):
 
 
 class User(AbstractUser):
-    username = models.CharField(
-        max_length=150,
-        validators=[RegexValidator(regex=r'^[\w.@+-]+\Z'), ],
-        unique=True,
+    bio = models.TextField(
+        blank=True,
+        verbose_name='Информация о пользователе',
     )
-    email = models.EmailField(
-        unique=True,
-    )
-    bio = models.TextField(blank=True)
     role = models.CharField(
         max_length=254,
         choices=Role.choices,
         default=Role.USER,
         blank=True,
+        verbose_name='Тип учётной записи',
     )
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     @property
     def is_moderator(self):

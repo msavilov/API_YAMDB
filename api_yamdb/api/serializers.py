@@ -9,17 +9,17 @@ class GenreSerializer(serializers.ModelSerializer):
     """Серилизатор для жанров"""
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        exclude = ('id',)
 
 
 class CategorySerializer(serializers.ModelSerializer):
     """Серилизатор для категории"""
     class Meta:
         model = Category
-        fields = ('name', 'slug')
+        exclude = ('id',)
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleReadSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
     rating = serializers.IntegerField(read_only=True)
@@ -55,13 +55,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = (
-            'id',
-            'text',
-            'author',
-            'score',
-            'pub_date',
-        )
+        exclude = ('title',)
         read_only_fields = (
             'id',
             'author',
@@ -85,12 +79,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = (
-            'id',
-            'text',
-            'author',
-            'pub_date',
-        )
+        exclude = ('review',)
         read_only_fields = (
             'id',
             'author',
@@ -126,12 +115,24 @@ class RegistrationSerializer(serializers.ModelSerializer):
             raise ValidationError(
                 'Использовать имя "me" в качестве username запрещено.'
             )
+        if User.objects.filter(username=value).exists():
+            raise ValidationError(
+                f'Пользователь с username {value} уже существует.'
+            )
         return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise ValidationError(
+                f'Пользователь с email {value} уже существует.'
+            )
+        if value:
+            return value
+        raise ValidationError('Значение email не должно быть пустым.')
 
 
 class GetTokenSerializer(serializers.Serializer):
     """Сериализатор для получения токена"""
-
     username = serializers.CharField(
         max_length=150,
         required=True,

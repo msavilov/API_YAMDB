@@ -9,6 +9,9 @@ from django.db import models
 
 from users.models import User
 
+MIN_SCORE = 1
+MAX_SCORE = 10
+
 
 class CategoriesGenresAbstract(models.Model):
     """Абстрактная модель для жанров и категории"""
@@ -40,12 +43,9 @@ class Category(CategoriesGenresAbstract):
     """Модель категории"""
 
     class Meta(CategoriesGenresAbstract.Meta):
+        ordering = ('slug',)
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
-        default_related_name = 'categories'
-
-    def __str__(self):
-        return self.name
 
 
 class Genre(CategoriesGenresAbstract):
@@ -54,48 +54,40 @@ class Genre(CategoriesGenresAbstract):
     class Meta(CategoriesGenresAbstract.Meta):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-        default_related_name = 'genres'
-
-    def __str__(self):
-        return self.name
 
 
 class Title(models.Model):
     """Модель произведения"""
 
     name = models.CharField(
-        'Название',
+        verbose_name='Название',
         max_length=256,
-        db_index=True,
     )
     year = models.IntegerField(
-        'Год выпуска',
+        verbose_name='Год выпуска',
         db_index=True,
-        default=None,
         validators=(MaxValueValidator(int(datetime.now().year)),),
     )
     description = models.TextField(
-        'Описание',
-        db_index=True,
+        verbose_name='Описание',
         max_length=256,
         blank=True,
     )
     genre = models.ManyToManyField(
         Genre,
-        related_name='titles',
         verbose_name='Жанр',
     )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='titles',
         verbose_name='Категория',
     )
 
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
+        default_related_name = 'titles'
         ordering = ('id',)
 
     def __str__(self):
@@ -106,8 +98,8 @@ class Review(models.Model):
     """Модель обзора и оценки произведения"""
 
     text = models.CharField(
-        'Текст отзыва',
-        max_length=150
+        verbose_name='Текст отзыва',
+        max_length=150,
     )
     author = models.ForeignKey(
         User,
@@ -115,7 +107,7 @@ class Review(models.Model):
         verbose_name='Пользователь',
     )
     pub_date = models.DateTimeField(
-        'Дата публикации отзыва',
+        verbose_name='Дата публикации отзыва',
         auto_now_add=True,
     )
     title = models.ForeignKey(
@@ -125,22 +117,24 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         'Оценка',
-        default=1,
+        default=MAX_SCORE,
         validators=(
-            MinValueValidator(1),
-            MaxValueValidator(10)
+            MinValueValidator(MIN_SCORE),
+            MaxValueValidator(MAX_SCORE),
         ),
         error_messages={
-            'validators': 'Оценка от 1 до 10!'
+            'validators': f'Score must be from {MIN_SCORE} to {MAX_SCORE}!'
         }
     )
 
     class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
         ordering = ['-pub_date']
         constraints = [
             models.UniqueConstraint(
                 fields=['author', 'title'],
-                name='unique_autor'
+                name='unique_autor',
             )
         ]
 
@@ -154,16 +148,23 @@ class Comment(models.Model):
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
-        related_name='comments'
+        related_name='comments',
+        verbose_name='Отзыв',
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='Пользователь'
+        verbose_name='Пользователь',
     )
     pub_date = models.DateTimeField(
-        'Дата комментария',
+        verbose_name='Дата комментария',
         auto_now_add=True,
-        db_index=True
+        db_index=True,
     )
-    text = models.TextField()
+    text = models.TextField(
+        verbose_name='Текст комментария'
+    )
+
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
