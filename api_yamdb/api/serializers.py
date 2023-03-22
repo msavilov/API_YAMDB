@@ -88,7 +88,7 @@ class CommentSerializer(serializers.ModelSerializer):
         )
 
 
-class RegistrationSerializer(serializers.Serializer):
+class RegistrationSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации"""
     email = serializers.EmailField(
         max_length=254,
@@ -100,19 +100,18 @@ class RegistrationSerializer(serializers.Serializer):
         validators=[RegexValidator(regex=r'^[\w.@+-]+\Z'), ]
     )
 
-    # class Meta:
-    #     model = User
-        # fields = (
-        #     'username',
-        #     'email',
-        #     'first_name',
-        #     'last_name',
-        #     'bio',
-        #     'role',
-        # )
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
 
     def validate(self, value):
-        print(value)
         username = value.get('username')
         email = value.get('email')
 
@@ -124,7 +123,7 @@ class RegistrationSerializer(serializers.Serializer):
         if not User.objects.filter(username=username).exists():
             if User.objects.filter(email=email).exists():
                 raise ValidationError(
-                    "Пользователь с email {email} уже существует."
+                    'Пользователь с email {email} уже существует.'
                 )
 
         return value
@@ -134,20 +133,7 @@ class RegistrationSerializer(serializers.Serializer):
             raise ValidationError(
                 'Использовать имя "me" в качестве username запрещено.'
             )
-        # if User.objects.filter(username=value).exists():
-        #     raise ValidationError(
-        #         f'Пользователь с username {value} уже существует.'
-        #     )
         return value
-
-    # def validate_email(self, value):
-    #     if User.objects.filter(email=value).exists():
-    #         raise ValidationError(
-    #             f'Пользователь с email {value} уже существует.'
-    #         )
-    #     if value:
-    #         return value
-    #     raise ValidationError('Значение email не должно быть пустым.')
 
 
 class GetTokenSerializer(serializers.Serializer):

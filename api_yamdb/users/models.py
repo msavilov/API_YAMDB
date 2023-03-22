@@ -20,9 +20,6 @@ class User(AbstractUser):
         blank=True,
         verbose_name='Тип учётной записи',
     )
-    # email = models.EmailField(
-    #     unique=True,
-    # )
 
     class Meta:
         verbose_name = 'Пользователь'
