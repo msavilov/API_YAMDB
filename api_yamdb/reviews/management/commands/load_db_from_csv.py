@@ -15,10 +15,13 @@ class Command(BaseCommand):
             str(p.name).rstrip('.csv'): p for p in data_folder.iterdir()
         }
 
+        load_same_model = {
+            'user': User,
+            'category': Category,
+            'genre': Genre,
+        }
+
         load_model = {
-            'user': self.load_user,
-            'category': self.load_category,
-            'genre': self.load_genre,
             'title': self.load_titles,
             'genre_title': self.load_genre_title,
             'review': self.load_review,
@@ -26,38 +29,22 @@ class Command(BaseCommand):
         }
 
         try:
+            for name, model in load_same_model.items():
+                self.load_data(file_path[name], model)
             for name, load_func in load_model.items():
                 load_func(file_path[name])
             print('Данные успешно импортированы в БД')
         except Exception as r:
             raise CommandError('Ошибка загрузки данных', r)
 
-    def load_user(self, path):
+    def load_data(self, path, model):
         with open(path, newline='') as csvfile:
             reader = csv.DictReader(csvfile)
             temp_instances = []
             for row in reader:
-                temp_instances.append(User(**row))
-            User.objects.bulk_create(temp_instances)
-        print('User загружен')
-
-    def load_category(self, path):
-        with open(path, newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
-            temp_instances = []
-            for row in reader:
-                temp_instances.append(Category(**row))
-            Category.objects.bulk_create(temp_instances)
-        print('Category загружен')
-
-    def load_genre(self, path):
-        with open(path, newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
-            temp_instances = []
-            for row in reader:
-                temp_instances.append(Genre(**row))
-            Genre.objects.bulk_create(temp_instances)
-        print('Genre загружен')
+                temp_instances.append(model(**row))
+            model.objects.bulk_create(temp_instances)
+        print(f'{model.__name__} загружен')
 
     def load_titles(self, path):
         with open(path, newline='') as csvfile:

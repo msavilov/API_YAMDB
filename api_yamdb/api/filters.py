@@ -4,13 +4,22 @@ from reviews.models import Title
 
 
 class TitlesFilter(FilterSet):
-    genre = CharFilter(method='filter_by_genre')
-    category = CharFilter(method='filter_by_category')
-    name = CharFilter(method='filter_by_name')
+    genre = CharFilter(
+        field_name='genre__slug',
+        method='filter_by_genre',
+    )
+    category = CharFilter(
+        field_name='category__slug',
+        method='filter_by_category',
+    )
+    name = CharFilter(
+        field_name='name',
+        method='filter_by_name',
+    )
 
     class Meta:
         model = Title
-        fields = ('year',)
+        fields = ('name', 'category', 'genre', 'year')
 
     def filter_by_genre(self, queryset, name, value):
         return queryset.filter(genre__slug=value)

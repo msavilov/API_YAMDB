@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.conf import settings
 from django.core.validators import (
     MaxValueValidator,
     MinValueValidator,
@@ -8,10 +9,6 @@ from django.core.validators import (
 from django.db import models
 
 from users.models import User
-
-MIN_SCORE = 1
-MAX_SCORE = 10
-DEFAULT_SCORE = 10
 
 
 class CategoriesGenresAbstract(models.Model):
@@ -118,13 +115,14 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         verbose_name='Оценка',
-        default=DEFAULT_SCORE,
+        default=settings.DEFAULT_SCORE,
         validators=(
-            MinValueValidator(MIN_SCORE),
-            MaxValueValidator(MAX_SCORE),
+            MinValueValidator(settings.MIN_SCORE),
+            MaxValueValidator(settings.MAX_SCORE),
         ),
         error_messages={
-            'validators': f'Score must be from {MIN_SCORE} to {MAX_SCORE}!'
+            'validators': f'Score must be from {settings.MIN_SCORE} '
+            + f'to {settings.MAX_SCORE}!'
         }
     )
 
